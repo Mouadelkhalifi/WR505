@@ -48,6 +48,17 @@ export async function deleteActor(actorId) {
     }
 }
 
+// **Ajouter**: Rechercher des acteurs selon un critère (ex: nom, prénom)
+export async function searchActors(query) {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/actors?search=${query}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la recherche des acteurs :', error);
+        throw error;
+    }
+}
+
 // --------------------- Films ---------------------
 
 // Récupérer tous les films (avec pagination)
@@ -90,6 +101,17 @@ export async function deleteMovie(movieId) {
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la suppression du film :', error);
+        throw error;
+    }
+}
+
+// **Ajouter**: Rechercher des films selon un critère (ex: titre)
+export async function searchMovies(query) {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/movies?search=${query}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la recherche des films :', error);
         throw error;
     }
 }
