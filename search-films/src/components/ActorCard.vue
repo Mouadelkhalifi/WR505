@@ -16,14 +16,14 @@
             <span class="icon">🎂</span>
             <div class="info-content">
               <span class="label">Date de naissance</span>
-              <span class="value">{{ actor.dob }}</span>
+              <span class="value">{{ formatDate(actor.dob) }}</span> <!-- Formattage de la date -->
             </div>
           </div>
           <div class="info-item" v-if="actor.death_date">
             <span class="icon">✝️</span>
             <div class="info-content">
               <span class="label">Date de décès</span>
-              <span class="value">{{ actor.death_date }}</span>
+              <span class="value">{{ formatDate(actor.death_date) }}</span> <!-- Formattage de la date -->
             </div>
           </div>
           <div class="info-item">
@@ -73,7 +73,12 @@ export default {
     },
     formatDate(date) {
       if (!date) return '';
-      return new Date(date).toLocaleDateString('fr-FR');
+      // Utilise le format français jour/mois/année
+      return new Date(date).toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
     }
   }
 };
