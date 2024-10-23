@@ -8,6 +8,12 @@ import CategoriesPage from "@/pages/CategoriesPage.vue";
 import ProfilePage from "@/pages/ProfilePage.vue";
 import ActorCard from "@/components/ActorCard.vue";
 
+// Fonction pour vérifier l'authentification
+function isAuthenticated() {
+    // Vérifie la présence d'un token dans le localStorage
+    return !!localStorage.getItem('token');
+}
+
 const routes = [
     {
         path: '/',
@@ -42,18 +48,46 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: ProfilePage,
+        meta: { requiresAuth: true }, // Page protégée, nécessite une authentification
     },
     {
         path: '/actors/:id',
         name: 'ActorDetails',
         component: ActorCard,
-    }
+    },
+    {
+        path: '/logout',
+        name: 'Logout',
+        beforeEnter(to, from, next) {
+            localStorage.removeItem('token');
 
+            window.location.href = '/login';
+
+            next({ name: 'Login' });
+        },
+    }
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
+});
+
+// Navigation Guard global pour vérifier les routes protégées
+router.beforeEach((to, from, next) => {
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        // Vérifie si la route nécessite une authentification
+        if (!isAuthenticated()) {
+            // Si l'utilisateur n'est pas authentifié, redirection vers la page de login
+            next({ name: 'Login' });
+        } else {
+            // Si l'utilisateur est authentifié, continuer
+            next();
+        }
+    } else {
+        // Si la route ne nécessite pas d'authentification, continuer
+        next();
+    }
 });
 
 export default router;

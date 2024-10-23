@@ -11,7 +11,7 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="pagination-theme mt-10 flex justify-center">
+      <div v-if="totalPages > 1" class="pagination-container mt-10 flex justify-center">
         <nav class="pagination" aria-label="Pagination">
           <a v-if="currentPage > 1" @click="fetchMovies(currentPage - 1)" class="pagination-btn prev">
             Précédent
@@ -68,9 +68,27 @@ export default {
     }
   },
   methods: {
+    isAuthenticated() {
+      // Vérifie si un token existe dans le localStorage
+      return !!localStorage.getItem('token');
+    },
     async fetchMovies(page = 1) {
+      if (!this.isAuthenticated()) {
+        // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
+        window.location.href = '/login';
+        return;
+      }
+
+      const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`http://symfony.mmi-troyes.fr:8319/api/movies?page=${page}`);
+        const response = await fetch(`http://symfony.mmi-troyes.fr:8319/api/movies?page=${page}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,  // Ajoute le token dans l'en-tête Authorization
+            'Content-Type': 'application/json'
+          }
+        });
+
         const data = await response.json();
 
         if (data['hydra:member'] && Array.isArray(data['hydra:member'])) {
@@ -84,8 +102,14 @@ export default {
 
         this.totalPages = Math.ceil(totalItems / itemsPerPage);
         this.currentPage = page;
+
       } catch (error) {
         console.error("Erreur lors de la récupération des films:", error);
+        if (error.response && error.response.status === 401) {
+          // Si une erreur d'autorisation (401) survient, supprimer le token et rediriger vers login
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
         this.movies = [];
         this.totalPages = 1;
       }
@@ -95,55 +119,59 @@ export default {
 </script>
 
 <style scoped>
+.pagination-container {
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+}
 
-.pagination-theme {
+.pagination {
   display: flex;
   justify-content: center;
-  padding-top: 15px;
-}
-/* Pagination container */
-.pagination {
-  display: inline-flex;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  background-color: #2b2a2a; /* background léger */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-background);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
 }
 
-/* Buttons styling */
+.pagination-numbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .pagination-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.18);
-  color: #8a0909;
-  font-size: 1rem;
-  font-weight: 500;
-  border: 1px solid #2b2a2a;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  transition: all var(--transition-speed);
   cursor: pointer;
+  font-weight: 500;
 }
 
-.pagination-btn:hover {
-  background-color: #e50914; /* couleur distinctive */
-  color: #2b2a2a;
+.pagination-btn:hover,
+.btn-hover {
+  background: var(--primary-color);
+  color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
 }
 
 .pagination-btn.active {
-  background-color: #e50914;
-  color: #2b2a2a;
-  border-color: #e50914;
+  background: var(--primary-color);
+  color: var(--secondary-color);
 }
 
-/* Specific styles for prev/next buttons */
-.pagination-btn.prev,
-.pagination-btn.next {
-  background-color: #2b2a2a;
-}
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-.pagination-btn.prev:hover,
-.pagination-btn.next:hover {
-  background-color: #e50914;
-  color: #2b2a2a;
+  .pagination-numbers {
+    order: -1;
+  }
 }
 </style>
