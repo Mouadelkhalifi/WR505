@@ -1,134 +1,51 @@
 <template>
-  <div id="login-form">
-    <div v-if="!loggedIn">
-      <form @submit.prevent="onSubmit">
-        <h1>{{ title }}</h1>
-        <p>Remplissez ce formulaire pour vous connecter.</p>
-        <hr>
-
-        <label for="email"><b>Email</b></label>
-        <input type="text" v-model="email" placeholder="Entrez votre courriel" id="email" name="email" required>
-
-        <label for="psw"><b>Mot de passe</b></label>
-        <input type="password" v-model="password" placeholder="Entrez votre mot de passe" id="psw" name="psw" required>
-
-        <p><button type="submit">Se connecter</button></p>
-
-        <p v-if="error" class="error">{{ error }}</p>
-      </form>
-    </div>
-
-    <div v-else>
-      <ul class="films">
-        <li v-for="(film, index) in films" :key="index" class="film card">
-          <img class="poster" :src="film.poster" alt="Poster">
-          <p class="title">
-            {{ film.title }}
-            <span class="rating">{{ getStars(film.metascore) }}</span>
-          </p>
-          <dl>
-            <dt>Release date</dt><dd>{{ film.released }}</dd>
-            <dt>Director</dt><dd>{{ film.director }}</dd>
-            <dt>Actors</dt><dd>{{ film.actors }}</dd>
-          </dl>
-          <p class="plot">{{ film.plot }}</p>
-        </li>
-      </ul>
-    </div>
+  <div>
+    <form @submit.prevent="login">
+      <input v-model="username" placeholder="Username" />
+      <input v-model="password" type="password" placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
   </div>
 </template>
 
 <script>
-import { mapActions, mapState } from "pinia";
-import { useSession } from "@/stores/session";
+import axios from 'axios';
 
 export default {
   data() {
     return {
-      title: 'Authentification',
-      email: '',
+      username: '',
       password: '',
-      error: null,  // Ajout de la variable d'erreur
-      films: [
-        // Films d'exemple
-        {
-          title: 'Titanic',
-          released: '19 Dec 1997',
-          director: 'James Cameron',
-          actors: 'Leonardo DiCaprio, Kate Winslet, Billy Zane, Kathy Bates',
-          poster: 'https://m.media-amazon.com/images/M/MV5BMDdmZGU3NDQtY2E5My00ZTliLWIzOTUtMTY4ZGI1YjdiNjk3XkEyXkFqcGdeQXVyNTA4NzY1MzY@._V1_SX300.jpg',
-          plot: '84 years later, a 100 year-old woman named Rose DeWitt Bukater tells the story...',
-          metascore: '75'
-        },
-        {
-          title: 'Blade Runner',
-          released: '25 Jun 1982',
-          director: 'Ridley Scott',
-          actors: 'Harrison Ford, Rutger Hauer, Sean Young, Edward James Olmos',
-          poster: 'https://m.media-amazon.com/images/M/MV5BNzQzMzJhZTEtOWM4NS00MTdhLTg0YjgtMjM4MDRkZjUwZDBlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg',
-          plot: 'A blade runner must pursue and terminate four replicants who stole a ship in space...',
-          metascore: '89'
-        },
-        {
-          title: 'The Shining',
-          released: '13 Jun 1980',
-          director: 'Stanley Kubrick',
-          actors: 'Jack Nicholson, Shelley Duvall, Danny Lloyd, Scatman Crothers',
-          poster: 'https://m.media-amazon.com/images/M/MV5BZWFlYmY2MGEtZjVkYS00YzU4LTg0YjQtYzY1ZGE3NTA5NGQxXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg',
-          plot: 'A family heads to an isolated hotel for the winter...',
-          metascore: '63'
-        }
-      ]
+      isLoggedIn: false,
     };
   },
-  computed: {
-    // Récupération de l'état loggedIn de Pinia
-    ...mapState(useSession, ['loggedIn'])
-  },
   methods: {
-    // Méthode pour soumettre le formulaire de connexion
-    onSubmit() {
-      if (this.email === 'email@email.com' && this.password === 'password') {
-        this.error = null;  // Réinitialisation de l'erreur
-        this.login({user: this.email, password: this.password});
-      } else {
-        this.error = 'Mauvais login / mot de passe';  // Affichage de l'erreur
+    async login() {
+      // Vérifier si l'utilisateur est déjà connecté
+      if (localStorage.getItem('token')) {
+        this.isLoggedIn = true;
+        this.$router.push('/home'); // Redirection vers la page d'accueil si déjà connecté
+        return; // Arrêter la méthode ici
       }
-    },
-    getStars(metascore) {
-      if (metascore === 'N/A') return '';
-      const score = parseInt(metascore);
-      const stars = Math.round(score / 20);
-      return '★'.repeat(stars) + '☆'.repeat(5 - stars);
-    },
-    ...mapActions(useSession, ['login'])  // Mapping de l'action de login
-  }
+
+      try {
+        // Envoyer la requête d'authentification
+        const response = await axios.post('http://symfony.mmi-troyes.fr:8319/auth', {
+          username: this.username,
+          password: this.password,
+        });
+
+        // Vérifier et stocker le token
+        if (response.data && response.data.token) {
+          localStorage.setItem('token', response.data.token); // Stocker le token
+          this.isLoggedIn = true;
+          this.$router.push('/accueil'); // Redirection après succès
+        }
+      } catch (error) {
+        console.error('Erreur d\'authentification :', error);
+        // Gérer l'erreur, afficher un message à l'utilisateur, etc.
+      }
+    }
+  },
 };
 </script>
-
-<style scoped>
-.films {
-  list-style: none;
-  padding: 0;
-}
-
-.film.card {
-  border: 1px solid #ccc;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.poster {
-  width: 100px;
-}
-
-.rating {
-  color: gold;
-}
-
-.error {
-  color: red;
-  font-weight: bold;
-}
-</style>

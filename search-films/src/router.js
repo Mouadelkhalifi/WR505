@@ -6,8 +6,13 @@ import HomePage from '@/pages/HomePage.vue';
 import ActorsPage from "@/pages/ActorsPage.vue";
 import CategoriesPage from "@/pages/CategoriesPage.vue";
 import ProfilePage from "@/pages/ProfilePage.vue";
+import ActorCard from "@/components/ActorCard.vue";
 
 const routes = [
+    {
+        path: '/',
+        redirect: '/home',
+    },
     {
         path: '/movies',
         name: 'Movies',
@@ -27,8 +32,7 @@ const routes = [
         path: '/actors',
         name: 'Actors',
         component: ActorsPage,
-    }
-    ,
+    },
     {
         path: '/categories',
         name: 'Categories',
@@ -40,9 +44,11 @@ const routes = [
         component: ProfilePage,
     },
     {
-        path: '/',
-
+        path: '/actors/:id',
+        name: 'ActorDetails',
+        component: ActorCard,
     }
+
 ];
 
 const router = createRouter({
