@@ -76,17 +76,15 @@ export default {
     const actors = ref([]);
     const currentPage = ref(1);
     const totalPages = ref(1);
-    const pageRange = ref(5); // Nombre de pages à afficher
+    const pageRange = ref(5);
     const itemsPerPage = 9;
     const isLoading = ref(false);
     const filters = ref({
       nationality: '',
       awards_min: null,
     });
-    // Vérification de l'authentification
     const isAuthenticated = () => !!localStorage.getItem('token');
 
-    // Calcul des pages visibles
     const visiblePages = computed(() => {
       const halfRange = Math.floor(pageRange.value / 2);
       let start = Math.max(1, currentPage.value - halfRange);
@@ -107,7 +105,6 @@ export default {
 
     const fetchActorsData = async (page = 1) => {
       if (!isAuthenticated()) {
-        // Redirection vers la page de login si l'utilisateur n'est pas authentifié
         window.location.href = '/login';
         return;
       }
@@ -127,7 +124,7 @@ export default {
             {
               method: 'GET',
               headers: {
-                'Authorization': `Bearer ${token}`, // Inclure le token dans la requête
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
               },
               redirect: 'follow',
@@ -145,7 +142,6 @@ export default {
         }
       } catch (error) {
         console.error('Erreur lors de la récupération des acteurs:', error);
-        // Supprimer le token si une erreur d'autorisation survient
         if (error.response && error.response.status === 401) {
           localStorage.removeItem('token');
           window.location.href = '/login';

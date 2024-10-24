@@ -1,4 +1,3 @@
-// src/router.js
 import { createRouter, createWebHistory } from 'vue-router';
 import MoviesPage from './pages/MoviesPage.vue';
 import LoginForm from './components/LoginForm.vue';
@@ -7,10 +6,10 @@ import ActorsPage from "@/pages/ActorsPage.vue";
 import CategoriesPage from "@/pages/CategoriesPage.vue";
 import ProfilePage from "@/pages/ProfilePage.vue";
 import ActorCard from "@/components/ActorCard.vue";
+import MovieDetails from "@/components/MovieDetails.vue";
+import ActorDetails from "@/components/ActorDetails.vue";
 
-// Fonction pour vérifier l'authentification
 function isAuthenticated() {
-    // Vérifie la présence d'un token dans le localStorage
     return !!localStorage.getItem('token');
 }
 
@@ -48,7 +47,7 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: ProfilePage,
-        meta: { requiresAuth: true }, // Page protégée, nécessite une authentification
+        meta: { requiresAuth: true },
     },
     {
         path: '/actors/:id',
@@ -65,6 +64,16 @@ const routes = [
 
             next({ name: 'Login' });
         },
+    },
+    {
+        path: '/movies/:id',
+        name: 'MovieDetails',
+        component: MovieDetails,
+    },
+    {
+        path: '/actors/:id',
+        name: 'ActorDetails',
+        component: ActorDetails,
     }
 ];
 
@@ -73,19 +82,14 @@ const router = createRouter({
     routes,
 });
 
-// Navigation Guard global pour vérifier les routes protégées
 router.beforeEach((to, from, next) => {
     if (to.matched.some(record => record.meta.requiresAuth)) {
-        // Vérifie si la route nécessite une authentification
         if (!isAuthenticated()) {
-            // Si l'utilisateur n'est pas authentifié, redirection vers la page de login
             next({ name: 'Login' });
         } else {
-            // Si l'utilisateur est authentifié, continuer
             next();
         }
     } else {
-        // Si la route ne nécessite pas d'authentification, continuer
         next();
     }
 });

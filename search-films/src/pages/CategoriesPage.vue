@@ -2,14 +2,12 @@
   <div class="container">
     <h1>Catégories</h1>
 
-    <!-- Error Message -->
     <div v-if="errorMessage" class="error-card">
       <div class="error-content">
         {{ errorMessage }}
       </div>
     </div>
 
-    <!-- Categories Grid -->
     <div v-else class="categories-grid">
       <div v-for="category in categories"
            :key="category.id"
@@ -24,7 +22,6 @@
       </div>
     </div>
 
-    <!-- Pagination -->
     <div v-if="totalPages > 1" class="pagination-container">
       <nav class="pagination" aria-label="Navigation des pages">
         <button
@@ -90,7 +87,6 @@ export default {
   },
   methods: {
     isAuthenticated() {
-      // Vérifie si un token existe dans le localStorage
       return !!localStorage.getItem('token');
     },
     formatDate(dateString) {
@@ -102,7 +98,6 @@ export default {
     },
     async fetchCategories(page = 1) {
       if (!this.isAuthenticated()) {
-        // Redirection vers la page de login si l'utilisateur n'est pas authentifié
         window.location.href = '/login';
         return;
       }
@@ -112,7 +107,7 @@ export default {
       const requestOptions = {
         method: "GET",
         headers: {
-          'Authorization': `Bearer ${token}`,  // Ajoute le token dans l'en-tête Authorization
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         redirect: "follow"
@@ -133,7 +128,6 @@ export default {
       } catch (error) {
         console.error("Erreur lors de la récupération des catégories :", error);
         if (error.response && error.response.status === 401) {
-          // Si une erreur d'autorisation (401) survient, supprimer le token et rediriger vers login
           localStorage.removeItem('token');
           window.location.href = '/login';
         } else {

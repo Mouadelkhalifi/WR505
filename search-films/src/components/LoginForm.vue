@@ -183,5 +183,4 @@ export default {
   font-weight: 500;
 }
 
-/* Loading Spinner styles sont déjà définis dans votre CSS global */
 </style>

@@ -55,5 +55,4 @@ export default {
 </script>
 
 <style scoped>
-/* Styles pour la page de profil */
 </style>
