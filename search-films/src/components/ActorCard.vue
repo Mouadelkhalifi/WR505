@@ -1,5 +1,5 @@
 <template>
-  <div v-if="actor" class="actor-card">
+  <div v-if="actor" class="actor-card" @click="goToActorDetails">
     <div class="image-container">
       <img :src="actor.media" alt="Image de l'acteur" class="actor-image" />
       <div class="status-badge" v-if="actor.death_date">In Memoriam</div>
@@ -16,14 +16,14 @@
             <span class="icon">🎂</span>
             <div class="info-content">
               <span class="label">Date de naissance</span>
-              <span class="value">{{ formatDate(actor.dob) }}</span> <!-- Formattage de la date -->
+              <span class="value">{{ formatDate(actor.dob) }}</span>
             </div>
           </div>
           <div class="info-item" v-if="actor.death_date">
             <span class="icon">✝️</span>
             <div class="info-content">
               <span class="label">Date de décès</span>
-              <span class="value">{{ formatDate(actor.death_date) }}</span> <!-- Formattage de la date -->
+              <span class="value">{{ formatDate(actor.death_date) }}</span>
             </div>
           </div>
           <div class="info-item">
@@ -63,24 +63,22 @@ export default {
   props: {
     actor: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   methods: {
-    truncateBio(text, length) {
-      if (!text) return '';
-      return text.length > length ? text.substring(0, length) + '...' : text;
+    goToActorDetails() {
+      this.$router.push(`/actors/${this.actor.id}`);
     },
     formatDate(date) {
       if (!date) return '';
-      // Utilise le format français jour/mois/année
       return new Date(date).toLocaleDateString('fr-FR', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

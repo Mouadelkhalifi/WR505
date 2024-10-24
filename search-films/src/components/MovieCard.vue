@@ -1,6 +1,6 @@
 <template>
-  <div class="movie-card" @click="goToDetails">
-    <div class="image-container">
+  <div class="movie-card">
+    <div class="image-container" @click="goToDetails">
       <img :src="movie.media" :alt="movie.title" class="movie-poster" />
       <div class="movie-overlay">
         <div class="movie-metadata">
@@ -12,6 +12,7 @@
         </div>
       </div>
     </div>
+
     <div class="content">
       <div class="header">
         <h3 class="title">{{ movie.title }}</h3>
@@ -30,21 +31,60 @@
 
         <div class="footer">
           <span class="entries">{{ formatEntries(movie.entries) }} vues</span>
-          <button class="btn-view">Voir plus</button>
+          <button class="btn-view" @click="goToDetails">Voir plus</button>
+          <button class="btn-edit" @click="openEditMovieForm">Éditer</button>
+          <button class="btn-delete" @click="openDeleteMovieForm">Supprimer</button>
         </div>
       </div>
     </div>
   </div>
+  <!-- Edit Movie Modal -->
+  <EditMovieModal
+      :showModal="showEditMovieForm"
+      :movie="editedMovie"
+      :actors="actors"
+      @close="closeEditMovieForm"
+      @update-movie="handleMovieUpdate"
+  />
+
+  <!-- Delete Movie Modal -->
+  <DeleteMovieModal
+      :showModal="showDeleteMovieForm"
+      :movie="movie"
+      @close="closeDeleteMovieForm"
+      @delete-movie="handleMovieDelete"
+  />
+
+  <!-- Popin de succès après suppression -->
+  <div v-if="showDeleteSuccess" class="success-popin">
+    Film supprimé avec succès !
+  </div>
 </template>
 
 <script>
+import EditMovieModal from "@/components/EditMovieModal.vue";
+import DeleteMovieModal from "@/components/DeleteMovieModal.vue";
+
 export default {
-  name: 'MovieCard',
+  name: "MovieCard",
+  components: { EditMovieModal, DeleteMovieModal },
   props: {
     movie: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
+    actors: {
+      type: Array,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      showEditMovieForm: false,
+      showDeleteMovieForm: false,
+      showDeleteSuccess: false, // Contrôle l'affichage du message de succès
+      editedMovie: {}, // Movie object to hold the data for the modal
+    };
   },
   methods: {
     goToDetails() {
@@ -53,26 +93,102 @@ export default {
     formatDuration(minutes) {
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
-      return `${hours}h${mins.toString().padStart(2, '0')}`;
+      return `${hours}h${mins.toString().padStart(2, "0")}`;
     },
     formatYear(date) {
       return new Date(date).getFullYear();
     },
     truncateText(text, length) {
-      if (text.length <= length) return text;
-      return text.substring(0, length) + '...';
+      return text.length <= length ? text : text.substring(0, length) + "...";
     },
     formatEntries(number) {
-      if (number >= 1000000) {
-        return (number / 1000000).toFixed(1) + 'M';
+      return number >= 1000000
+          ? (number / 1000000).toFixed(1) + "M"
+          : number >= 1000
+              ? (number / 1000).toFixed(1) + "K"
+              : number;
+    },
+    openEditMovieForm() {
+      this.editedMovie = JSON.parse(JSON.stringify(this.movie));
+      this.showEditMovieForm = true;
+    },
+    closeEditMovieForm() {
+      this.showEditMovieForm = false;
+    },
+    openDeleteMovieForm() {
+      this.showDeleteMovieForm = true;
+    },
+    closeDeleteMovieForm() {
+      this.showDeleteMovieForm = false;
+    },
+    async handleMovieUpdate(updatedMovie) {
+      const token = localStorage.getItem("token");
+      if (!updatedMovie.id) {
+        console.error("L'ID du film est manquant. Impossible de procéder à la mise à jour.");
+        return;
       }
-      if (number >= 1000) {
-        return (number / 1000).toFixed(1) + 'K';
+
+      const url = `http://symfony.mmi-troyes.fr:8319/api/movies/${updatedMovie.id}`;
+
+      try {
+        const response = await fetch(url, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/merge-patch+json",
+          },
+          body: JSON.stringify(updatedMovie),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Erreur lors de la mise à jour: ${errorData.detail}`);
+        }
+
+        const result = await response.json();
+        this.$emit("update-movie", result);
+        this.closeEditMovieForm();
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour du film:", error);
       }
-      return number;
-    }
-  }
-}
+    },
+    async handleMovieDelete(movieId) {
+      const token = localStorage.getItem("token");
+      const url = `http://symfony.mmi-troyes.fr:8319/api/movies/${movieId}`;
+
+      try {
+        const response = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Erreur lors de la suppression: ${errorData.detail}`);
+        }
+
+        console.log("Film supprimé avec succès");
+        this.$emit("movie-deleted", movieId);
+
+        // Afficher la popin de succès
+        this.showDeleteSuccess = true;
+
+        // Fermer le modal de suppression
+        this.closeDeleteMovieForm();
+
+        // Masquer la popin après 3 secondes
+        setTimeout(() => {
+          this.showDeleteSuccess = false;
+        }, 3000);
+      } catch (error) {
+        console.error("Erreur lors de la suppression du film:", error);
+      }
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -238,6 +354,49 @@ export default {
 
 .btn-view:hover {
   background: #b30710;
+}
+
+.btn-edit {
+  background: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-edit:hover {
+  background: #0056b3;
+}
+.btn-delete {
+  background-color: #e50914;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-delete:hover {
+  background-color: #b30710;
+}
+
+.success-popin {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #28a745;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 
 @media (max-width: 480px) {

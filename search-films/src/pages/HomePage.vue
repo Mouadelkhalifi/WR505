@@ -156,7 +156,7 @@ export default {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2rem;
   padding: 1rem 0;
 }
@@ -187,7 +187,6 @@ export default {
   }
 }
 
-/* Animation d'apparition des cartes */
 .grid > * {
   animation: fadeIn 0.6s ease-out;
 }
@@ -203,7 +202,6 @@ export default {
   }
 }
 
-/* Style pour le titre principal */
 h1 {
   text-align: center;
   margin-bottom: 3rem;
@@ -216,7 +214,6 @@ h1 {
   text-shadow: none;
 }
 
-/* Hover effect pour les cartes */
 .grid > * {
   transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1),
   box-shadow var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
