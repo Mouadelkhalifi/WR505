@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4">
       <h1 class="text-5xl font-extrabold text-center text-gray-900 mb-10 tracking-tight">Découvrez nos films</h1>
 
-      <!-- Search Bar -->
+      <!-- Barre de recherche et bouton -->
       <div class="search-bar mb-8">
         <form @submit.prevent="searchFilm">
           <label for="search" class="sr-only">Rechercher :</label>
@@ -11,18 +11,20 @@
         </form>
       </div>
 
-      <!-- Add Movie Button -->
       <div class="flex justify-end mb-8">
-        <button @click="openAddMovieForm" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700">Add Movie</button>
+        <button @click="openAddMovieForm" class="add-movie-btn">Add Movie</button>
       </div>
 
-      <!-- Movies Grid -->
+      <!-- Grille de films -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" :actors="actors" @update-movie="updateMovieInList" @movie-deleted="removeMovieFromList" />
         <div v-if="movies.length === 0" class="col-span-full text-center text-gray-500">
           Aucun film trouvé.
         </div>
       </div>
+
+      <!-- Popin de succès pour suppression -->
+      <div v-if="showDeleteSuccess" class="success-popin">Film supprimé avec succès !</div>
 
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="pagination-container mt-10 flex justify-center">
@@ -34,7 +36,7 @@
         </nav>
       </div>
 
-      <!-- Add Movie Modal -->
+      <!-- Modal d'ajout de film -->
       <AddMovieModal
           :showModal="showAddMovieForm"
           :isEditMode="isEditMode"
@@ -46,7 +48,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import MovieCard from '@/components/MovieCard.vue';
 import AddMovieModal from '@/components/AddMovieModal.vue';
@@ -61,6 +62,8 @@ export default {
       pageRange: 5,
       query: '',
       showAddMovieForm: false,
+      showDeleteSuccess: false,
+      showUpdateSuccess: false,
       isEditMode: false,
       newMovie: {
         id: '',
@@ -240,34 +243,112 @@ export default {
     updateMovieInList(updatedMovie) {
       const index = this.movies.findIndex(movie => movie.id === updatedMovie.id);
       if (index !== -1) {
-        this.movies[index] = { ...updatedMovie }; // Remplacement direct pour réactivité
+        this.movies[index] = { ...updatedMovie };
       }
     },
     removeMovieFromList(movieId) {
       this.movies = this.movies.filter(movie => movie.id !== movieId);
+      this.showDeleteSuccess = true;
+      console.log("Le popin de suppression devrait être visible."); // Ajout de log pour vérifier l'affichage
+
+      setTimeout(() => {
+        this.showDeleteSuccess = false;
+        console.log("Le popin de suppression est maintenant masqué."); // Log pour vérifier la disparition
+      }, 3000);
     }
   }
 };
 </script>
 
 
-
-
 <style scoped>
+.success-popin {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #28a745;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
 .search-bar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto 2rem;
 }
 
 .search-input {
   width: 100%;
-  max-width: 400px;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  box-shadow: var(--card-shadow);
+  padding: 12px 20px;
+  font-size: 16px;
+  color: #1f2937;
+  background-color: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Style pour le bouton Add Movie */
+.add-movie-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.add-movie-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.add-movie-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.add-movie-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Support pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  .search-input {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+  }
+
+  .search-input::placeholder {
+    color: #6b7280;
+  }
+
+  .search-input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+  }
 }
 
 .pagination-container {

@@ -15,8 +15,9 @@
       />
     </div>
 
-    <!-- Bouton pour afficher la modal d'ajout d'acteur -->
-    <button class="btn-add-actor" @click="openAddActorForm">Ajouter un acteur</button>
+    <div class="flex justify-end mb-8">
+      <button @click="openAddActorForm" class="btn-add-actor">Ajouter un acteur</button>
+    </div>
 
     <!-- Modal d'ajout d'acteur -->
     <AddActorModal
@@ -28,24 +29,28 @@
 
     <!-- Liste des acteurs -->
     <div class="actors-list" v-if="actors.length > 0">
-      <ActorCard v-for="actor in actors" :key="actor.id" :actor="actor" @update-actor="updateActorInList" @actor-deleted="removeActorFromList" />
+      <ActorCard
+          v-for="actor in actors"
+          :key="actor.id"
+          :actor="actor"
+          @update-actor="updateActorInList"
+          @actor-deleted="removeActorFromList"
+      />
     </div>
 
     <div v-else>
       <p>Aucun acteur trouvé</p>
     </div>
 
+    <!-- Popin de succès pour suppression -->
+    <div v-if="showDeleteSuccess" class="success-popin">Acteur supprimé avec succès !</div>
+
     <!-- Pagination -->
     <div class="pagination-container" v-if="totalPages > 1">
       <div class="pagination">
-        <button class="pagination-btn" :disabled="currentPage === 1" @click="goToPreviousPage">
-          Précédent
-        </button>
-
+        <button class="pagination-btn" :disabled="currentPage === 1" @click="goToPreviousPage">Précédent</button>
         <div class="pagination-numbers">
-          <button v-if="visiblePages[0] > 1" class="pagination-btn" @click="goToPage(1)">
-            1
-          </button>
+          <button v-if="visiblePages[0] > 1" class="pagination-btn" @click="goToPage(1)">1</button>
           <span v-if="visiblePages[0] > 2">...</span>
 
           <button
@@ -68,13 +73,7 @@
           </button>
         </div>
 
-        <button
-            class="pagination-btn"
-            :disabled="currentPage === totalPages"
-            @click="goToNextPage"
-        >
-          Suivant
-        </button>
+        <button class="pagination-btn" :disabled="currentPage === totalPages" @click="goToNextPage">Suivant</button>
       </div>
     </div>
   </div>
@@ -83,13 +82,11 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue';
 import ActorCard from '@/components/ActorCard.vue';
-import Pagination from '@/components/Pagination.vue';
 import AddActorModal from '@/components/AddActorModal.vue';
 
 export default {
   components: {
     ActorCard,
-    Pagination,
     AddActorModal,
   },
   setup() {
@@ -99,11 +96,11 @@ export default {
     const pageRange = ref(5);
     const itemsPerPage = 9;
     const showAddActorForm = ref(false);
+    const showDeleteSuccess = ref(false);
     const isLoading = ref(false);
     const query = ref('');
     const typingTimer = ref(null);
 
-    // Fetch actors from API
     const fetchActorsData = async (page = 1) => {
       if (!isAuthenticated()) {
         window.location.href = '/login';
@@ -143,7 +140,6 @@ export default {
       }
     };
 
-    // Pagination logic
     const visiblePages = computed(() => {
       const halfRange = Math.floor(pageRange.value / 2);
       let start = Math.max(1, currentPage.value - halfRange);
@@ -155,14 +151,9 @@ export default {
         start = Math.max(1, totalPages.value - pageRange.value + 1);
       }
 
-      const pages = [];
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-      return pages;
+      return Array.from({ length: end - start + 1 }, (_, i) => i + start);
     });
 
-    // Navigation between pages
     const goToPreviousPage = () => {
       if (currentPage.value > 1) {
         fetchActorsData(currentPage.value - 1);
@@ -181,7 +172,6 @@ export default {
       }
     };
 
-    // Open and close Add Actor modal
     const openAddActorForm = () => {
       showAddActorForm.value = true;
     };
@@ -190,7 +180,6 @@ export default {
       showAddActorForm.value = false;
     };
 
-    // Add a new actor
     const addActor = async (newActor) => {
       const token = localStorage.getItem('token');
       try {
@@ -208,33 +197,36 @@ export default {
           throw new Error(`Erreur lors de l'ajout: ${errorData.detail}`);
         }
 
-        // Refresh actors list after adding a new actor
         fetchActorsData(currentPage.value);
       } catch (error) {
         console.error('Erreur lors de l\'ajout de l\'acteur:', error);
       }
     };
 
-    // Update actor in the list without reloading the page
     const updateActorInList = (updatedActor) => {
       const index = actors.value.findIndex(actor => actor.id === updatedActor.id);
       if (index !== -1) {
-        actors.value[index] = {...updatedActor};
+        actors.value[index] = { ...updatedActor };
       }
     };
 
-    // Remove actor from the list without reloading the page
     const removeActorFromList = (actorId) => {
       actors.value = actors.value.filter(actor => actor.id !== actorId);
+      showDeleteSuccess.value = true;
+      console.log("Le popin de suppression devrait être visible."); // Vérifier affichage
+
+      setTimeout(() => {
+        showDeleteSuccess.value = false;
+        console.log("Le popin de suppression est maintenant masqué."); // Vérifier masquage
+      }, 3000);
     };
 
-    // Search actors automatically (debounced)
-    watch(query, (newQuery) => {
+    watch(query, () => {
       clearTimeout(typingTimer.value);
       typingTimer.value = setTimeout(() => {
         currentPage.value = 1;
         fetchActorsData();
-      }, 500); // Debounce search by 500ms
+      }, 500);
     });
 
     const isAuthenticated = () => !!localStorage.getItem('token');
@@ -251,6 +243,7 @@ export default {
       isLoading,
       query,
       showAddActorForm,
+      showDeleteSuccess,
       fetchActorsData,
       goToPreviousPage,
       goToNextPage,
@@ -265,21 +258,96 @@ export default {
 };
 </script>
 
+
+
 <style scoped>
+.success-popin{
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #28a745;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
 .search-bar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto 2rem;
 }
 
 .search-input {
   width: 100%;
-  max-width: 400px;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  box-shadow: var(--card-shadow);
+  padding: 12px 20px;
+  font-size: 16px;
+  color: #1f2937;
+  background-color: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Style pour le bouton Add Movie */
+.btn-add-actor {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.btn-add-actor:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.btn-add-actor:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.btn-add-actor:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Support pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  .search-input {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+  }
+
+  .search-input::placeholder {
+    color: #6b7280;
+  }
+
+  .search-input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+  }
 }
 
 .actors-list {
