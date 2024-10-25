@@ -51,7 +51,7 @@
           <!-- Deuxième colonne -->
           <div class="form-column">
             <div>
-              <label for="actor-nationality">Nationalité :</label>
+              <label for="actor-nationality">Nationalité (FR/DE/MA) :</label>
               <input
                   type="text"
                   id="actor-nationality"
@@ -115,7 +115,6 @@ export default {
     }
   },
   methods: {
-    // Function to format the date in 'YYYY-MM-DD' format required by input[type="date"]
     formatDateForInput(date) {
       if (!date) return "";
       const d = new Date(date);
@@ -125,12 +124,11 @@ export default {
       return `${year}-${month}-${day}`;
     },
     closeModal() {
-      this.$emit('close'); // Emit close event to parent
+      this.$emit('close');
     },
     updateActor() {
-      // Emit the updated actor data back to the parent component
       this.$emit('update-actor', this.localActor);
-      this.closeModal(); // Close the modal
+      this.closeModal();
     }
   }
 };

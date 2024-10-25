@@ -97,4 +97,16 @@ h2 {
 .btn-cancel:hover {
   background-color: #999;
 }
+
+.success-popin {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #28a745;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
 </style>

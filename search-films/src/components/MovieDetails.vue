@@ -48,7 +48,6 @@
       </div>
 
       <div class="container">
-        <!-- Informations techniques -->
         <section class="movie-details-section">
           <div class="section-header">
             <h2>Informations techniques</h2>
@@ -78,7 +77,6 @@
           </div>
         </section>
 
-        <!-- Section Acteurs avec ActorCard -->
         <section class="actors-section">
           <div class="section-header">
             <h2>Acteurs</h2>
@@ -110,7 +108,7 @@ export default {
   data() {
     return {
       movie: null,
-      actors: [], // Nouveau tableau pour stocker les détails des acteurs
+      actors: [],
     };
   },
   created() {
@@ -132,8 +130,7 @@ export default {
         );
         this.movie = response.data;
 
-        // Après avoir récupéré les détails du film, récupérons les acteurs
-        this.fetchActorDetails(this.movie.actors); // Passez les URLs des acteurs
+        this.fetchActorDetails(this.movie.actors);
       } catch (error) {
         console.error('Erreur lors de la récupération des détails du film :', error);
         if (error.response?.status === 401) {
@@ -144,12 +141,11 @@ export default {
     },
     async fetchActorDetails(actorUrls) {
       try {
-        // Requête pour chaque acteur à partir de son URL
         const actorPromises = actorUrls.map((url) =>
             axios.get(`http://symfony.mmi-troyes.fr:8319${url}`)
         );
         const actorResponses = await Promise.all(actorPromises);
-        this.actors = actorResponses.map((res) => res.data); // Stockez les détails des acteurs
+        this.actors = actorResponses.map((res) => res.data);
       } catch (error) {
         console.error('Erreur lors de la récupération des acteurs :', error);
       }

@@ -32,6 +32,10 @@
         <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
+
+        <div class="forgot-password">
+          <router-link to="/forgot-password">Mot de passe oublié ?</router-link>
+        </div>
       </form>
     </div>
   </div>
@@ -183,4 +187,18 @@ export default {
   font-weight: 500;
 }
 
+.forgot-password {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.forgot-password a {
+  color: var(--primary-color);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
 </style>

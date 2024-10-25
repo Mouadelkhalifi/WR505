@@ -39,7 +39,7 @@
             </div>
 
             <div>
-              <label for="actor-nationality">Nationalité :</label>
+              <label for="actor-nationality">Nationalité (FR/DE/MA) :</label>
               <input
                   type="text"
                   id="actor-nationality"

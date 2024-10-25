@@ -102,13 +102,12 @@ export default {
   },
   data() {
     return {
-      localMovie: {}  // Local movie data to edit
+      localMovie: {}
     };
   },
   watch: {
     movie: {
       handler(newMovie) {
-        // Initialize localMovie with the movie data from the parent
         this.localMovie = JSON.parse(JSON.stringify(newMovie));
       },
       immediate: true
@@ -119,7 +118,6 @@ export default {
       this.$emit("close");
     },
     updateMovie() {
-      // Emit the updated movie data
       this.$emit("update-movie", this.localMovie);
     }
   }

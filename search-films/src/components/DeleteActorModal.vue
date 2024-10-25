@@ -24,7 +24,7 @@ export default {
       this.$emit('close');
     },
     deleteActor() {
-      this.$emit('delete-actor', this.actor.id); // Emit actor ID to delete
+      this.$emit('delete-actor', this.actor.id);
     }
   }
 };

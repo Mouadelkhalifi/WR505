@@ -54,12 +54,12 @@
       @delete-movie="handleMovieDelete"
   />
 
-  <div v-if="showDeleteSuccess" class="success-popin">
-    Film supprimé avec succès !
-  </div>
-
   <div v-if="showUpdateSuccess" class="success-popin">
     Film mis à jour avec succès !
+  </div>
+
+  <div v-if="showDeleteSuccess" class="success-popin">
+    Film supprimé avec succès !
   </div>
 </template>
 
@@ -182,8 +182,9 @@ export default {
         console.log("Film supprimé avec succès");
         this.$emit("movie-deleted", movieId);
 
+        // Déclenche l'affichage du popin de succès
         this.showDeleteSuccess = true;
-        this.closeDeleteMovieForm();
+        this.showDeleteMovieForm = false; // Ferme le popin de confirmation
 
         setTimeout(() => {
           this.showDeleteSuccess = false;

@@ -52,14 +52,13 @@
         </div>
       </div>
 
-      <!-- Boutons pour Editer et Supprimer -->
       <div class="footer">
+        <button class="btn-view-actors" @click="goToActorDetails">Voir les acteurs</button>
         <button class="btn-edit" @click="openEditActorForm">Éditer</button>
         <button class="btn-delete" @click="openDeleteActorForm">Supprimer</button>
       </div>
     </div>
   </div>
-  <!-- Edit Actor Modal -->
   <EditActorModal
       :showModal="showEditActorForm"
       :actor="editedActor"
@@ -67,7 +66,6 @@
       @update-actor="handleActorUpdate"
   />
 
-  <!-- Delete Actor Modal -->
   <DeleteActorModal
       :showModal="showDeleteActorForm"
       :actor="actor"
@@ -271,6 +269,28 @@ export default {
   display: flex;
   align-items: flex-end;
   padding: 1.5rem;
+}
+
+/* Boutons */
+.btn-view-actors,
+.btn-edit,
+.btn-delete {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view-actors {
+  background-color: #e50914;
+  color: white;
+}
+
+.btn-view-actors:hover {
+  background-color: #b30710;
 }
 
 h2 {

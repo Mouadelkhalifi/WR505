@@ -1,13 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import MoviesPage from './pages/MoviesPage.vue';
-import LoginForm from './components/LoginForm.vue';
-import HomePage from '@/pages/HomePage.vue';
-import ActorsPage from "@/pages/ActorsPage.vue";
-import CategoriesPage from "@/pages/CategoriesPage.vue";
-import ProfilePage from "@/pages/ProfilePage.vue";
+import MoviesPage from './views/MoviesPage.vue';
+import LoginPage from './views/LoginPage.vue';
+import HomePage from '@/views/HomePage.vue';
+import ActorsPage from "@/views/ActorsPage.vue";
+import CategoriesPage from "@/views/CategoriesPage.vue";
+import ProfilePage from "@/views/ProfilePage.vue";
 import ActorCard from "@/components/ActorCard.vue";
 import MovieDetails from "@/components/MovieDetails.vue";
 import ActorDetails from "@/components/ActorDetails.vue";
+import CategoryDetails from "@/components/CategoryDetails.vue";
+
 
 function isAuthenticated() {
     return !!localStorage.getItem('token');
@@ -26,7 +28,7 @@ const routes = [
     {
         path: '/login',
         name: 'Login',
-        component: LoginForm,
+        component: LoginPage,
     },
     {
         path: '/home',
@@ -74,6 +76,11 @@ const routes = [
         path: '/actors/:id',
         name: 'ActorDetails',
         component: ActorDetails,
+    },
+    {
+        path: '/categories/:id',
+        name: 'CategoryDetails',
+        component: CategoryDetails,
     }
 ];
 
