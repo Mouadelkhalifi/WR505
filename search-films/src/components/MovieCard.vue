@@ -1,6 +1,6 @@
 <template>
   <div class="movie-card">
-    <div class="image-container" @click="goToDetails">
+    <div class="image-container" @click="goToMovieDetails">
       <img :src="movie.media" :alt="movie.title" class="movie-poster" />
       <div class="movie-overlay">
         <div class="movie-metadata">
@@ -31,7 +31,7 @@
 
         <div class="footer">
           <span class="entries">{{ formatEntries(movie.entries) }} vues</span>
-          <button class="btn-view" @click="goToDetails">Voir plus</button>
+          <button class="btn-view" @click="goToMovieDetails">Voir plus</button>
           <button class="btn-edit" @click="openEditMovieForm">Éditer</button>
           <button class="btn-delete" @click="openDeleteMovieForm">Supprimer</button>
         </div>
@@ -47,7 +47,6 @@
       @update-movie="handleMovieUpdate"
   />
 
-  <!-- Delete Movie Modal -->
   <DeleteMovieModal
       :showModal="showDeleteMovieForm"
       :movie="movie"
@@ -55,9 +54,12 @@
       @delete-movie="handleMovieDelete"
   />
 
-  <!-- Popin de succès après suppression -->
   <div v-if="showDeleteSuccess" class="success-popin">
     Film supprimé avec succès !
+  </div>
+
+  <div v-if="showUpdateSuccess" class="success-popin">
+    Film mis à jour avec succès !
   </div>
 </template>
 
@@ -82,12 +84,13 @@ export default {
     return {
       showEditMovieForm: false,
       showDeleteMovieForm: false,
-      showDeleteSuccess: false, // Contrôle l'affichage du message de succès
-      editedMovie: {}, // Movie object to hold the data for the modal
+      showDeleteSuccess: false,
+      showUpdateSuccess: false,
+      editedMovie: {},
     };
   },
   methods: {
-    goToDetails() {
+    goToMovieDetails() {
       this.$router.push(`/movies/${this.movie.id}`);
     },
     formatDuration(minutes) {
@@ -145,6 +148,12 @@ export default {
           throw new Error(`Erreur lors de la mise à jour: ${errorData.detail}`);
         }
 
+        this.showUpdateSuccess = true;
+        this.$emit("update-movie", updatedMovie);
+        setTimeout(() => {
+          this.showUpdateSuccess = false;
+        }, 3000);
+
         const result = await response.json();
         this.$emit("update-movie", result);
         this.closeEditMovieForm();
@@ -173,13 +182,9 @@ export default {
         console.log("Film supprimé avec succès");
         this.$emit("movie-deleted", movieId);
 
-        // Afficher la popin de succès
         this.showDeleteSuccess = true;
-
-        // Fermer le modal de suppression
         this.closeDeleteMovieForm();
 
-        // Masquer la popin après 3 secondes
         setTimeout(() => {
           this.showDeleteSuccess = false;
         }, 3000);

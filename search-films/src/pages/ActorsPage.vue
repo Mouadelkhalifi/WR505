@@ -2,30 +2,48 @@
   <div>
     <h1>Liste des Acteurs</h1>
 
+    <!-- Barre de recherche pour les acteurs -->
+    <div class="search-bar mb-8">
+      <label for="search" class="sr-only">Rechercher un acteur :</label>
+      <input
+          id="search"
+          ref="searchInput"
+          type="text"
+          v-model="query"
+          placeholder="Rechercher un acteur..."
+          class="search-input"
+      />
+    </div>
+
+    <!-- Bouton pour afficher la modal d'ajout d'acteur -->
+    <button class="btn-add-actor" @click="openAddActorForm">Ajouter un acteur</button>
+
+    <!-- Modal d'ajout d'acteur -->
+    <AddActorModal
+        v-if="showAddActorForm"
+        :showModal="showAddActorForm"
+        @close="closeAddActorForm"
+        @add-actor="addActor"
+    />
+
+    <!-- Liste des acteurs -->
     <div class="actors-list" v-if="actors.length > 0">
-      <ActorCard v-for="actor in actors" :key="actor.id" :actor="actor" />
+      <ActorCard v-for="actor in actors" :key="actor.id" :actor="actor" @update-actor="updateActorInList" @actor-deleted="removeActorFromList" />
     </div>
 
     <div v-else>
       <p>Aucun acteur trouvé</p>
     </div>
 
+    <!-- Pagination -->
     <div class="pagination-container" v-if="totalPages > 1">
       <div class="pagination">
-        <button
-            class="pagination-btn"
-            :disabled="currentPage === 1"
-            @click="goToPreviousPage"
-        >
+        <button class="pagination-btn" :disabled="currentPage === 1" @click="goToPreviousPage">
           Précédent
         </button>
 
         <div class="pagination-numbers">
-          <button
-              v-if="visiblePages[0] > 1"
-              class="pagination-btn"
-              @click="goToPage(1)"
-          >
+          <button v-if="visiblePages[0] > 1" class="pagination-btn" @click="goToPage(1)">
             1
           </button>
           <span v-if="visiblePages[0] > 2">...</span>
@@ -63,14 +81,16 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import ActorCard from '@/components/ActorCard.vue';
 import Pagination from '@/components/Pagination.vue';
+import AddActorModal from '@/components/AddActorModal.vue';
 
 export default {
   components: {
     ActorCard,
     Pagination,
+    AddActorModal,
   },
   setup() {
     const actors = ref([]);
@@ -78,13 +98,52 @@ export default {
     const totalPages = ref(1);
     const pageRange = ref(5);
     const itemsPerPage = 9;
+    const showAddActorForm = ref(false);
     const isLoading = ref(false);
-    const filters = ref({
-      nationality: '',
-      awards_min: null,
-    });
-    const isAuthenticated = () => !!localStorage.getItem('token');
+    const query = ref('');
+    const typingTimer = ref(null);
 
+    // Fetch actors from API
+    const fetchActorsData = async (page = 1) => {
+      if (!isAuthenticated()) {
+        window.location.href = '/login';
+        return;
+      }
+
+      isLoading.value = true;
+      const token = localStorage.getItem('token');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        itemsPerPage: itemsPerPage.toString(),
+        firstname: query.value || ''
+      });
+
+      try {
+        const response = await fetch(`http://symfony.mmi-troyes.fr:8319/api/actors?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+
+        if (data['hydra:member']) {
+          actors.value = data['hydra:member'];
+          currentPage.value = page;
+          totalPages.value = Math.ceil(data['hydra:totalItems'] / itemsPerPage);
+        } else {
+          actors.value = [];
+          totalPages.value = 1;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des acteurs:', error);
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    // Pagination logic
     const visiblePages = computed(() => {
       const halfRange = Math.floor(pageRange.value / 2);
       let start = Math.max(1, currentPage.value - halfRange);
@@ -103,54 +162,7 @@ export default {
       return pages;
     });
 
-    const fetchActorsData = async (page = 1) => {
-      if (!isAuthenticated()) {
-        window.location.href = '/login';
-        return;
-      }
-
-      isLoading.value = true;
-      const token = localStorage.getItem('token');
-      try {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          itemsPerPage: itemsPerPage.toString(),
-          nationality: filters.value.nationality || '',
-          awards_min: filters.value.awards_min || '',
-        });
-
-        const response = await fetch(
-            `http://symfony.mmi-troyes.fr:8319/api/actors?${params.toString()}`,
-            {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-              redirect: 'follow',
-            }
-        );
-        const data = await response.json();
-
-        if (data['hydra:member']) {
-          actors.value = data['hydra:member'];
-          currentPage.value = page;
-          totalPages.value = Math.ceil(data['hydra:totalItems'] / itemsPerPage);
-        } else {
-          actors.value = [];
-          totalPages.value = 1;
-        }
-      } catch (error) {
-        console.error('Erreur lors de la récupération des acteurs:', error);
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
+    // Navigation between pages
     const goToPreviousPage = () => {
       if (currentPage.value > 1) {
         fetchActorsData(currentPage.value - 1);
@@ -169,6 +181,64 @@ export default {
       }
     };
 
+    // Open and close Add Actor modal
+    const openAddActorForm = () => {
+      showAddActorForm.value = true;
+    };
+
+    const closeAddActorForm = () => {
+      showAddActorForm.value = false;
+    };
+
+    // Add a new actor
+    const addActor = async (newActor) => {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await fetch('http://symfony.mmi-troyes.fr:8319/api/actors', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newActor),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Erreur lors de l'ajout: ${errorData.detail}`);
+        }
+
+        // Refresh actors list after adding a new actor
+        fetchActorsData(currentPage.value);
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout de l\'acteur:', error);
+      }
+    };
+
+    // Update actor in the list without reloading the page
+    const updateActorInList = (updatedActor) => {
+      const index = actors.value.findIndex(actor => actor.id === updatedActor.id);
+      if (index !== -1) {
+        actors.value[index] = {...updatedActor};
+      }
+    };
+
+    // Remove actor from the list without reloading the page
+    const removeActorFromList = (actorId) => {
+      actors.value = actors.value.filter(actor => actor.id !== actorId);
+    };
+
+    // Search actors automatically (debounced)
+    watch(query, (newQuery) => {
+      clearTimeout(typingTimer.value);
+      typingTimer.value = setTimeout(() => {
+        currentPage.value = 1;
+        fetchActorsData();
+      }, 500); // Debounce search by 500ms
+    });
+
+    const isAuthenticated = () => !!localStorage.getItem('token');
+
     onMounted(() => {
       fetchActorsData();
     });
@@ -179,11 +249,17 @@ export default {
       totalPages,
       visiblePages,
       isLoading,
-      filters,
+      query,
+      showAddActorForm,
       fetchActorsData,
       goToPreviousPage,
       goToNextPage,
       goToPage,
+      openAddActorForm,
+      closeAddActorForm,
+      addActor,
+      updateActorInList,
+      removeActorFromList,
     };
   },
 };
@@ -192,8 +268,18 @@ export default {
 <style scoped>
 .search-bar {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-shadow: var(--card-shadow);
 }
 
 .actors-list {
@@ -202,6 +288,7 @@ export default {
   gap: 20px;
   margin-left: 20px;
 }
+
 .pagination-container {
   margin-top: 3rem;
   margin-bottom: 2rem;
@@ -245,16 +332,5 @@ export default {
 .pagination-btn.active {
   background: var(--primary-color);
   color: var(--secondary-color);
-}
-
-@media (max-width: 768px) {
-  .pagination {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .pagination-numbers {
-    order: -1;
-  }
 }
 </style>
