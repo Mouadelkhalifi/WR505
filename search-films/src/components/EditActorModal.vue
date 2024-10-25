@@ -6,7 +6,6 @@
 
       <form @submit.prevent="updateActor">
         <div class="form-container">
-          <!-- Première colonne -->
           <div class="form-column">
             <div>
               <label for="actor-firstname">Prénom :</label>
@@ -48,7 +47,6 @@
             </div>
           </div>
 
-          <!-- Deuxième colonne -->
           <div class="form-column">
             <div>
               <label for="actor-nationality">Nationalité (FR/DE/MA) :</label>
@@ -96,20 +94,18 @@ export default {
   },
   data() {
     return {
-      localActor: {}, // Local copy of the actor data
-      formattedDob: "" // Formatted date for the 'dob' field
+      localActor: {},
+      formattedDob: ""
     };
   },
   watch: {
-    // Watch the actor prop to update the local actor copy and format the dob
     actor: {
       handler(newActor) {
-        this.localActor = { ...newActor }; // Deep copy to avoid modifying the original directly
-        this.formattedDob = this.formatDateForInput(newActor.dob); // Format the dob
+        this.localActor = { ...newActor };
+        this.formattedDob = this.formatDateForInput(newActor.dob);
       },
       immediate: true
     },
-    // Watch formattedDob and update the localActor's dob when it changes
     formattedDob(newDob) {
       this.localActor.dob = newDob;
     }

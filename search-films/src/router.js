@@ -81,6 +81,11 @@ const routes = [
         path: '/categories/:id',
         name: 'CategoryDetails',
         component: CategoryDetails,
+    },
+    {
+        path: '/profile',
+        name: 'Profile',
+        component: ProfilePage,
     }
 ];
 

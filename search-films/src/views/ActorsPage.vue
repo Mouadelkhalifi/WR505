@@ -2,7 +2,6 @@
   <div>
     <h1>Liste des Acteurs</h1>
 
-    <!-- Barre de recherche pour les acteurs -->
     <div class="search-bar mb-8">
       <label for="search" class="sr-only">Rechercher un acteur :</label>
       <input
@@ -19,7 +18,6 @@
       <button @click="openAddActorForm" class="btn-add-actor">Ajouter un acteur</button>
     </div>
 
-    <!-- Modal d'ajout d'acteur -->
     <AddActorModal
         v-if="showAddActorForm"
         :showModal="showAddActorForm"
@@ -27,7 +25,6 @@
         @add-actor="addActor"
     />
 
-    <!-- Liste des acteurs -->
     <div class="actors-list" v-if="actors.length > 0">
       <ActorCard
           v-for="actor in actors"
@@ -42,10 +39,8 @@
       <p>Aucun acteur trouvé</p>
     </div>
 
-    <!-- Popin de succès pour suppression -->
     <div v-if="showDeleteSuccess" class="success-popin">Acteur supprimé avec succès !</div>
 
-    <!-- Pagination -->
     <div class="pagination-container" v-if="totalPages > 1">
       <div class="pagination">
         <button class="pagination-btn" :disabled="currentPage === 1" @click="goToPreviousPage">Précédent</button>

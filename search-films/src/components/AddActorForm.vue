@@ -53,7 +53,6 @@ export default {
         awards: this.awards,
       };
 
-      // Faire un appel API pour ajouter l'acteur
       fetch('http://symfony.mmi-troyes.fr:8319/api/actors', {
         method: 'POST',
         headers: {

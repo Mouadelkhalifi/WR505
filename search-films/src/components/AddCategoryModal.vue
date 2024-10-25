@@ -6,7 +6,6 @@
 
       <form @submit.prevent="submitForm">
         <div class="form-container">
-          <!-- Première colonne -->
           <div class="form-column">
             <div>
               <label for="title">Titre de la catégorie :</label>
@@ -19,7 +18,6 @@
             </div>
           </div>
 
-          <!-- Deuxième colonne -->
           <div class="form-column">
             <div>
               <label for="date">Date de création :</label>

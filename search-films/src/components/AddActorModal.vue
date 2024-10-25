@@ -6,7 +6,6 @@
 
       <form @submit.prevent="addActor">
         <div class="form-container">
-          <!-- Première colonne -->
           <div class="form-column">
             <div>
               <label for="actor-firstname">Prénom :</label>
@@ -49,7 +48,6 @@
             </div>
           </div>
 
-          <!-- Deuxième colonne -->
           <div class="form-column">
             <div>
               <label for="actor-gender">Genre :</label>

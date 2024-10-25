@@ -1,11 +1,9 @@
 <template>
   <main class="actor-page">
     <template v-if="actor">
-      <!-- Hero Section with Actor Info -->
       <section class="hero-section">
         <div class="content-wrapper">
           <div class="profile-section">
-            <!-- Image Section -->
             <div class="image-wrapper">
               <img
                   :src="actor.media"
@@ -15,7 +13,6 @@
               <div class="image-overlay"></div>
             </div>
 
-            <!-- Info Section -->
             <div class="info-section">
               <h1 class="actor-name">
                 <span class="firstname">{{ actor.firstname }}</span>
@@ -68,7 +65,6 @@
         </div>
       </section>
 
-      <!-- Filmography Section -->
       <section class="filmography-section">
         <div class="content-wrapper">
           <h2 class="section-title">
@@ -95,7 +91,6 @@
       </section>
     </template>
 
-    <!-- Loading State -->
     <div v-else class="loading-state">
       <div class="loader">
         <div class="spinner"></div>
@@ -423,7 +418,6 @@ export default {
   }
 }
 
-/* Theme Variables (à ajouter dans votre fichier CSS global) */
 :root {
   --primary: #3b82f6;
   --primary-dark: #1e40af;
