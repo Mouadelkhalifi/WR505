@@ -1,6 +1,6 @@
 <template>
-  <div v-if="actor" class="actor-card" @click="goToActorDetails">
-    <div class="image-container">
+  <div v-if="actor" class="actor-card">
+    <div class="image-container" @click="goToActorDetails">
       <img :src="actor.media" alt="Image de l'acteur" class="actor-image" />
       <div class="status-badge" v-if="actor.death_date">In Memoriam</div>
       <div class="overlay">
@@ -9,6 +9,7 @@
         </div>
       </div>
     </div>
+
     <div class="content">
       <div class="info-section">
         <div class="info-grid">
@@ -50,37 +51,170 @@
           </div>
         </div>
       </div>
+
+      <!-- Boutons pour Editer et Supprimer -->
+      <div class="footer">
+        <button class="btn-edit" @click="openEditActorForm">Éditer</button>
+        <button class="btn-delete" @click="openDeleteActorForm">Supprimer</button>
+      </div>
     </div>
   </div>
-  <div v-else class="loading">
-    <div class="loading-spinner"></div>
-    <p>Chargement des détails de l'acteur...</p>
+  <!-- Edit Actor Modal -->
+  <EditActorModal
+      :showModal="showEditActorForm"
+      :actor="editedActor"
+      @close="closeEditActorForm"
+      @update-actor="handleActorUpdate"
+  />
+
+  <!-- Delete Actor Modal -->
+  <DeleteActorModal
+      :showModal="showDeleteActorForm"
+      :actor="actor"
+      @close="closeDeleteActorForm"
+      @delete-actor="handleActorDelete"
+  />
+
+  <div v-if="showDeleteSuccess" class="success-popin">
+    Acteur supprimé avec succès !
   </div>
+
+  <div v-if="showUpdateSuccess" class="success-popin">
+    Acteur modifié avec succès !
+  </div>
+
+
 </template>
 
 <script>
+import EditActorModal from "@/components/EditActorModal.vue";
+import DeleteActorModal from "@/components/DeleteActorModal.vue";
+
 export default {
+  name: "ActorCard",
+  components: { EditActorModal, DeleteActorModal },
   props: {
     actor: {
       type: Object,
       required: true,
     },
   },
+  data() {
+    return {
+      showEditActorForm: false,
+      showDeleteActorForm: false,
+      showDeleteSuccess: false,
+      showUpdateSuccess: false,
+      editedActor: { ...this.actor },
+    };
+  },
   methods: {
     goToActorDetails() {
       this.$router.push(`/actors/${this.actor.id}`);
     },
     formatDate(date) {
-      if (!date) return '';
-      return new Date(date).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      return date
+          ? new Date(date).toLocaleDateString("fr-FR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
+          : "";
+    },
+    openEditActorForm() {
+      this.editedActor = JSON.parse(JSON.stringify(this.actor));
+      this.showEditActorForm = true;
+    },
+    closeEditActorForm() {
+      this.showEditActorForm = false;
+    },
+    openDeleteActorForm() {
+      this.showDeleteActorForm = true;
+    },
+    closeDeleteActorForm() {
+      this.showDeleteActorForm = false;
+    },
+    async handleActorUpdate(updatedActor) {
+      const token = localStorage.getItem("token");
+      if (!updatedActor.id) {
+        console.error("L'ID de l'acteur est manquant. Impossible de procéder à la mise à jour.");
+        return;
+      }
+
+      if (typeof updatedActor.awards === "string") {
+        updatedActor.awards = parseInt(updatedActor.awards, 10);
+      }
+
+      if (isNaN(updatedActor.awards)) {
+        console.error("Erreur : 'awards' doit être un nombre entier valide.");
+        return;
+      }
+
+      const url = `http://symfony.mmi-troyes.fr:8319/api/actors/${updatedActor.id}`;
+
+      try {
+        const response = await fetch(url, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/merge-patch+json",
+          },
+          body: JSON.stringify(updatedActor),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Erreur lors de la mise à jour: ${errorData.detail}`);
+        }
+
+        this.showUpdateSuccess = true;
+        this.$emit("update-actor", updatedActor);
+        setTimeout(() => {
+          this.showUpdateSuccess = false;
+        }, 3000);
+
+        const result = await response.json();
+        this.$emit("update-actor", result);
+        this.closeEditActorForm();
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour de l'acteur:", error);
+      }
+    },
+    async handleActorDelete(actorId) {
+      const token = localStorage.getItem("token");
+      const url = `http://symfony.mmi-troyes.fr:8319/api/actors/${actorId}`;
+
+      try {
+        const response = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Erreur lors de la suppression: ${errorData.detail}`);
+        }
+
+        console.log("Acteur supprimé avec succès");
+        this.$emit("actor-deleted", actorId);
+
+        this.showDeleteSuccess = true;
+        this.closeDeleteActorForm();
+
+        setTimeout(() => {
+          this.showDeleteSuccess = false;
+        }, 3000);
+      } catch (error) {
+        console.error("Erreur lors de la suppression de l'acteur:", error);
+      }
     },
   },
 };
 </script>
+
 
 <style scoped>
 .actor-card {
@@ -283,5 +417,37 @@ h2 span {
   .image-container {
     height: 220px;
   }
+}
+.btn-edit,
+.btn-delete {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-edit:hover {
+  background-color: #0056b3;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+}
+
+.btn-delete:hover {
+  background-color: #b02a37;
+}
+
+.success-popin {
+  background-color: green;
+  color: white;
+  padding: 1rem;
+  border-radius: 10px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
 }
 </style>
