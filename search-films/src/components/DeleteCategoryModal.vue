@@ -31,7 +31,7 @@ export default {
   },
   data() {
     return {
-      hasMovies: false // Indicateur si la catégorie contient des films
+      hasMovies: false
     };
   },
   watch: {
@@ -39,7 +39,7 @@ export default {
       immediate: true,
       handler(newCategory) {
         if (newCategory) {
-          this.checkCategoryMovies(newCategory.id); // Vérifie si la catégorie a des films
+          this.checkCategoryMovies(newCategory.id);
         }
       }
     }

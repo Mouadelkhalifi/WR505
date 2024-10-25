@@ -35,7 +35,6 @@
         <button class="btn-delete" @click="openDeleteCategoryForm">Supprimer</button>
       </div>
     </div>
-
     <EditCategoryModal
         v-if="showEditCategoryForm"
         :showModal="showEditCategoryForm"

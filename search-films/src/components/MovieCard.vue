@@ -38,7 +38,6 @@
       </div>
     </div>
   </div>
-  <!-- Edit Movie Modal -->
   <EditMovieModal
       :showModal="showEditMovieForm"
       :movie="editedMovie"

@@ -1,7 +1,6 @@
 <template>
   <div class="movie-details-container">
     <div v-if="movie" class="movie-details">
-      <!-- Hero Section -->
       <div class="movie-hero">
         <div class="movie-backdrop" :style="{ backgroundImage: `url(${movie.media})` }">
           <div class="overlay"></div>

@@ -14,7 +14,6 @@
       </section>
     </template>
 
-    <!-- Loading State -->
     <div v-else-if="loading" class="loading-state">
       <div class="loader">
         <div class="spinner"></div>
@@ -22,7 +21,6 @@
       </div>
     </div>
 
-    <!-- Error State -->
     <div v-else class="error-state">
       <p>Erreur lors du chargement des détails de la catégorie.</p>
     </div>

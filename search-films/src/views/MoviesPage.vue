@@ -3,30 +3,38 @@
     <div class="container mx-auto px-4">
       <h1 class="text-5xl font-extrabold text-center text-gray-900 mb-10 tracking-tight">Découvrez nos films</h1>
 
-      <!-- Barre de recherche et bouton -->
       <div class="search-bar mb-8">
-        <form @submit.prevent="searchFilm">
-          <label for="search" class="sr-only">Rechercher :</label>
-          <input id="search" ref="searchInput" type="text" v-model="query" placeholder="Rechercher un film..." class="search-input"/>
-        </form>
+        <label for="search" class="sr-only">Rechercher un film :</label>
+        <input
+            id="search"
+            ref="searchInput"
+            type="text"
+            v-model="query"
+            placeholder="Rechercher un acteur..."
+            class="search-input"
+        />
       </div>
 
       <div class="flex justify-end mb-8">
         <button @click="openAddMovieForm" class="add-movie-btn">Add Movie</button>
       </div>
 
-      <!-- Grille de films -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" :actors="actors" @update-movie="updateMovieInList" @movie-deleted="removeMovieFromList" />
+        <MovieCard
+            v-for="movie in movies"
+            :key="movie.id"
+            :movie="movie"
+            :actors="actors"
+            @update-movie="updateMovieInList"
+            @movie-deleted="removeMovieFromList"
+        />
         <div v-if="movies.length === 0" class="col-span-full text-center text-gray-500">
           Aucun film trouvé.
         </div>
       </div>
 
-      <!-- Popin de succès pour suppression -->
       <div v-if="showDeleteSuccess" class="success-popin">Film supprimé avec succès !</div>
 
-      <!-- Pagination -->
       <div v-if="totalPages > 1" class="pagination-container mt-10 flex justify-center">
         <nav class="pagination" aria-label="Pagination">
           <a v-if="currentPage > 1" @click="fetchMovies(currentPage - 1)" class="pagination-btn prev">Précédent</a>
@@ -36,7 +44,6 @@
         </nav>
       </div>
 
-      <!-- Modal d'ajout de film -->
       <AddMovieModal
           :showModal="showAddMovieForm"
           :isEditMode="isEditMode"

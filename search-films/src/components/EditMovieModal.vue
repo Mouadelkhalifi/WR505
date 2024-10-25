@@ -6,7 +6,6 @@
 
       <form @submit.prevent="updateMovie">
         <div class="form-container">
-          <!-- Première colonne -->
           <div class="form-column">
             <div>
               <label for="movie-title">Titre :</label>
@@ -48,7 +47,6 @@
             </div>
           </div>
 
-          <!-- Deuxième colonne -->
           <div class="form-column">
             <div>
               <label for="movie-actors">Acteurs :</label>

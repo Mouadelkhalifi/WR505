@@ -2,7 +2,6 @@
   <div class="container">
     <h1>Liste des Catégories</h1>
 
-    <!-- Barre de recherche -->
     <div class="search-bar mb-8">
       <input
           id="search"
@@ -18,7 +17,6 @@
       <button @click="openAddCategoryForm" class="add-category-btn">Ajouter une catégorie</button>
     </div>
 
-    <!-- Modal d'ajout de catégorie -->
     <AddCategoryModal
         v-if="showAddCategoryForm"
         :showModal="showAddCategoryForm"
@@ -26,7 +24,6 @@
         @add-category="addCategory"
     />
 
-    <!-- Liste des catégories -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" v-if="categories.length > 0">
       <CategoryCard
           v-for="category in categories"
@@ -41,10 +38,8 @@
       <p>Aucune catégorie trouvée.</p>
     </div>
 
-    <!-- Popin de succès pour suppression -->
     <div v-if="showDeleteSuccess" class="success-popin">Catégorie supprimée avec succès !</div>
 
-    <!-- Pagination -->
     <div class="pagination-container" v-if="totalPages > 1">
       <div class="pagination">
         <button class="pagination-btn" :disabled="currentPage === 1" @click="goToPreviousPage">Précédent</button>
